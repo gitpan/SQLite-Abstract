@@ -1,0 +1,25 @@
+SQLite/Abstract version 0.01
+============================
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+  DBI Carp Exporter
+
+COPYRIGHT AND LICENCE
+
+Copyright 2005 by Vidul Petrov
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
