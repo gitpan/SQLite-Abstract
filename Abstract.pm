@@ -8,16 +8,16 @@ require Exporter;
 our @EXPORT =
   qw( search select insert update delete create drop delete_insert );
 
-our $VERSION = '0.1';
+our $VERSION = '0.11';
 
 
 our $glob = {
-    'tablename', 'tablename', 
-    'where',     'where',
-    'col',       'col',       
-    'set',       'set',
-    'struct',    'struct',    
-    'default_table', ''
+	'tablename',	'tablename', 
+	'where',	'where',
+	'col',		'col',       
+	'set',		'set',
+	'struct',	'struct',    
+	'default_table',''
 };
 
 my $regex = {
@@ -37,65 +37,65 @@ my $regex = {
 
 sub new {
 
-    my $class  = shift;
-    my $dbname = shift;
-    my $dbtype = shift;
+	my $class  = shift;
+	my $dbname = shift;
+    	my $dbtype = shift;
 
-    $dbtype ||= "dbi:SQLite:dbname";
+    	$dbtype ||= "dbi:SQLite:dbname";
 
-    -f $dbname or carp "ERR: no such database $dbname" and return 0;
+    	-f $dbname or carp "ERR: no such database $dbname" and return 0;
 
-    my $dbh = DBI->connect(
-        "$dbtype=$dbname", "", "",
-        {
-            AutoCommit => 1,
-            PrintError => 1,
-            RaiseError => 1
-        }
-      )
-      or carp "ERR: connect $DBI::errstr\n"
-      and return 0;
+    	my $dbh = DBI->connect(
+        	"$dbtype=$dbname", "", "",
+        	{
+            		AutoCommit => 1,
+            		PrintError => 1,
+            		RaiseError => 1
+        	}
+      	)
+      	or carp "ERR: connect $DBI::errstr\n"
+      	and return 0;
 
-    my $self = { 'dbh', $dbh };
+    	my $self = { 'dbh', $dbh };
 
-    bless $self, $class;
+    	bless $self, $class;
 
-    $self
+    	$self
 
 }
 
 sub search {
-    my $self   = shift;
-    my $clause = shift;
+	my $self   = shift;
+	my $clause = shift;
 
-    $clause->{ $glob->{'tablename'} } ||= $glob->{'default_table'};
-    $clause->{ $glob->{'tablename'} } or carp "ERR: no tablename given\n" and return 0;
-    $clause->{ $glob->{'col'} } ||= '*';
+    	$clause->{ $glob->{'tablename'} } ||= $glob->{'default_table'};
+    	$clause->{ $glob->{'tablename'} } or carp "ERR: no tablename given\n" and return 0;
+    	$clause->{ $glob->{'col'} } ||= '*';
 
-    my $stat = "SELECT $clause->{ $glob->{col} } FROM $clause->{ $glob->{tablename} }";
+    	my $stat = "SELECT $clause->{ $glob->{col} } FROM $clause->{ $glob->{tablename} }";
 
-    for ( keys %$clause ) {
-        next if /$glob->{'col'}/ or /$glob->{'tablename'}/;
-        /$glob->{'where'}/
-	and 
-	$clause->{ $glob->{'where'} } =~ s/$regex->{sql}{where}{like}/$1\'$2\'/gi;
-        $stat .= " $clause->{$_}";
-    }
+    	for ( keys %$clause ) {
+        	next if /$glob->{'col'}/ or /$glob->{'tablename'}/;
+        	/$glob->{'where'}/
+		and 
+		$clause->{ $glob->{'where'} } =~ s/$regex->{sql}{where}{like}/$1\'$2\'/gi;
+        	$stat .= " $clause->{$_}";
+    	}
 
-    $stat .= ';';
+    	$stat .= ';';
     
-    my $res = eval { $self->{'dbh'}->selectall_arrayref($stat) };
+    	my $res = eval { $self->{'dbh'}->selectall_arrayref($stat) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
+    	}
 
-    $res
+    	$res
 }
 
 sub select {
-    my $self = shift;
-    $self->search(@_);
+    	my $self = shift;
+   	$self->search(@_);
 }
 
 sub update {
@@ -135,196 +135,195 @@ sub update {
 }
 
 sub delete {
-    my $self   = shift;
-    my $clause = shift;
+    	my $self   = shift;
+    	my $clause = shift;
 
-    $clause->{ $glob->{'tablename'} } ||= $glob->{'default_table'};
-    $clause->{ $glob->{'tablename'} }
-      or carp "ERR: no tablename given\n"
-      and return 0;
-    my $stat = "DELETE FROM $clause->{$glob->{'tablename'}}";
+    	$clause->{ $glob->{'tablename'} } ||= $glob->{'default_table'};
+    	$clause->{ $glob->{'tablename'} }
+      		or carp "ERR: no tablename given\n"
+      		and return 0;
+    	my $stat = "DELETE FROM $clause->{$glob->{'tablename'}}";
 
-    for ( keys %$clause ) {
-        next if /$glob->{'tablename'}/;
-        /$glob->{'where'}/
-          and $clause->{ $glob->{'where'} } =~
-          s/$regex->{sql}{where}{like}/$1\'$2\'/gi;
-        $stat .= " $clause->{$_}";
-    }
+    	for ( keys %$clause ) {
+        	next if /$glob->{'tablename'}/;
+        	/$glob->{'where'}/
+          	and $clause->{ $glob->{'where'} } =~
+          	s/$regex->{sql}{where}{like}/$1\'$2\'/gi;
+        	$stat .= " $clause->{$_}";
+    	}
 
-    $stat .= ';';
+    	$stat .= ';';
     
-    $self->{'dbh'}->do("BEGIN;");
+    	$self->{'dbh'}->do("BEGIN;");
     
-    my $res = eval { $self->{'dbh'}->do($stat) };
+    	my $res = eval { $self->{'dbh'}->do($stat) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+    	}
 
-    $self->{'dbh'}->do("COMMIT;");
+    	$self->{'dbh'}->do("COMMIT;");
 
-    $res
+    	$res
 }
 
 sub insert {
-    my $self  = shift;
-    my $data  = shift;
-    my $table = shift;
-    my $len   = scalar @{ $data->[0] };
-    my $prep  = '?,' x $len;
-    my @exe;
-    $prep =~ s/,$//;
+	my $self  = shift;
+ 	my $data  = shift;
+    	my $table = shift;
+    	my $len   = scalar @{ $data->[0] };
+    	my $prep  = '?,' x $len;
+    	my @exe;
+    	$prep =~ s/,$//;
 
-    $table ||= $glob->{'default_table'};
-    $table or carp "ERR: no tablename given\n" and return 0;
+    	$table ||= $glob->{'default_table'};
+    	$table or carp "ERR: no tablename given\n" and return 0;
 
-    my $stat = "INSERT INTO $table VALUES ($prep);";
+    	my $stat = "INSERT INTO $table VALUES ($prep);";
 
-    $self->{'dbh'}->do("BEGIN;");
+    	$self->{'dbh'}->do("BEGIN;");
 
-    my $sth = eval { $self->{'dbh'}->prepare($stat) };
+    	my $sth = eval { $self->{'dbh'}->prepare($stat) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+    	}
 
-    for my $h (@$data) {
-        for my $key (@$h) {
-            push @exe, $key;
-        }
-        eval { $sth->execute(@exe) };
-        @exe = ();
-        if ($@) {
-            carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-        }
-    }
+    	for my $h (@$data) {
+        	for my $key (@$h) {
+            		push @exe, $key
+        	}
+        	eval { $sth->execute(@exe) };
+        	@exe = ();
+       		if ($@) {
+            		carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+        	}
+    	}
 
-    $self->{'dbh'}->do("COMMIT;");
+    	$self->{'dbh'}->do("COMMIT;");
 
-    1
+    	1
 
 }
 
 sub create {
-    my $self = shift;
-    my $sql  = shift;
+    	my $self = shift;
+    	my $sql  = shift;
 
-    $sql->{ $glob->{'tablename'} } ||= $glob->{'default_table'};
-    $sql->{ $glob->{'tablename'} }
-      or carp "ERR: no tablename given\n"
-      and return 0;
+    	$sql->{ $glob->{'tablename'} } ||= $glob->{'default_table'};
+    	$sql->{ $glob->{'tablename'} }
+      		or carp "ERR: no tablename given\n"
+      		and return 0;
 
-    my $stat = "CREATE TABLE $sql->{$glob->{'tablename'}}\n";
-    my $c;
+    	my $stat = "CREATE TABLE $sql->{$glob->{'tablename'}}\n";
+    	my $c;
 
-    $stat .= "\n(\n";
+    	$stat .= "\n(\n";
 
-    for ( @{ $sql->{ $glob->{'struct'} } } ) {
+    	for ( @{ $sql->{ $glob->{'struct'} } } ) {
 
-        if ( ref($_) eq "ARRAY" ) {
-            $stat .= "  @$_,\n";
-        }
-        else {
-            $stat .= " $_";
-        }
+        	if ( ref($_) eq "ARRAY" ) {
+            		$stat .= "  @$_,\n"
+        	}else{
+            		$stat .= " $_"
+        	}
 
-    }
+    	}
 
-    $stat =~ s/,$//;
-    $stat .= "\n);\n";
+    	$stat =~ s/,$//;
+    	$stat .= "\n);\n";
 
-    $self->{'dbh'}->do("BEGIN;");
+    	$self->{'dbh'}->do("BEGIN;");
 
-    eval { $self->{'dbh'}->do($stat) };
+    	eval { $self->{'dbh'}->do($stat) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+    	}
 
-    $self->{'dbh'}->do("COMMIT;");
+    	$self->{'dbh'}->do("COMMIT;");
 
-    1
+    	1
 }
 
 sub drop {
-    my $self  = shift;
-    my $table = shift;
+	my $self  = shift;
+    	my $table = shift;
 
-    $table ||= $glob->{'default_table'};
-    $table or carp "ERR: no tablename given\n" and return 0;
+    	$table ||= $glob->{'default_table'};
+    	$table or carp "ERR: no tablename given\n" and return 0;
 
-    my $stat = "DROP TABLE $table\n";
+    	my $stat = "DROP TABLE $table\n";
 
-    $self->{'dbh'}->do("BEGIN;");
+    	$self->{'dbh'}->do("BEGIN;");
 
-    eval { $self->{'dbh'}->do($stat) };
+    	eval { $self->{'dbh'}->do($stat) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+    	}
 
-    $self->{'dbh'}->do("COMMIT;");
+    	$self->{'dbh'}->do("COMMIT;");
 
-    1
+    	1
 }
 
 sub delete_insert {
-    my $self  = shift;
-    my $data  = shift;
-    my $table = shift;
-    my $len   = scalar @{ $data->[0] };
-    my $prep  = '?,' x $len;
-    my @exe;
-    $prep =~ s/,$//;
+    	my $self  = shift;
+    	my $data  = shift;
+    	my $table = shift;
+    	my $len   = scalar @{ $data->[0] };
+    	my $prep  = '?,' x $len;
+    	my @exe;
+    	$prep =~ s/,$//;
 
-    $table ||= $glob->{'default_table'};
-    $table or carp "ERR: no tablename given\n" and return 0;
+    	$table ||= $glob->{'default_table'};
+    	$table or carp "ERR: no tablename given\n" and return 0;
 
-    #	{
-    #		local $glob->{'default_table'} = $table; $self->delete
-    #		but not good for we need this in onw transaction
-    #	}
+    	#	{
+    	#		local $glob->{'default_table'} = $table; $self->delete
+    	#		but not good for we need this in one transaction
+    	#	}
 
-    my $delete = "DELETE FROM $table";
+    	my $delete = "DELETE FROM $table";
 
-    $self->{'dbh'}->do("BEGIN;");
+    	$self->{'dbh'}->do("BEGIN;");
 
-    eval { $self->{'dbh'}->do($delete) };
+    	eval { $self->{'dbh'}->do($delete) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+    	}
 
-    my $stat = "INSERT INTO $table VALUES ($prep);";
+    	my $stat = "INSERT INTO $table VALUES ($prep);";
 
-    my $sth = eval { $self->{'dbh'}->prepare($stat) };
+    	my $sth = eval { $self->{'dbh'}->prepare($stat) };
 
-    if ($@) {
-        carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-    }
+    	if ($@) {
+        	carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+    	}
 
-    for my $h (@$data) {
-        for my $key (@$h) {
-            push @exe, $key;
-        }
-        eval { $sth->execute(@exe) };
-        if ($@) {
-            carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0;
-        }
-        @exe = ();
-    }
+    	for my $h (@$data) {
+        	for my $key (@$h) {
+            		push @exe, $key
+        	}
+        	eval { $sth->execute(@exe) };
+        	if ($@) {
+            		carp $@ and eval { $self->{'dbh'}->do("ROLLBACK;") } and return 0
+        	}
+        	@exe = ();
+    	}
 
-    $self->{'dbh'}->do("COMMIT;");
+    	$self->{'dbh'}->do("COMMIT;");
 
-    1
+    	1
 
 }
 
 sub DESTROY {
-    my $self = shift;
-    $self->{'dbh'}->disconnect();
-    undef $self
+    	my $self = shift;
+    	$self->{'dbh'}->disconnect();
+    	undef $self
 }
 
 1
@@ -336,7 +335,7 @@ __END__
 
 =head1 NAME
 
-SQLite::Abstract - Object-oriented wrapper for SQLite
+SQLite::Abstract - Object oriented wrapper for SQLite
 
 =head1 SYNOPSIS
 
@@ -351,46 +350,19 @@ SQLite::Abstract - Object-oriented wrapper for SQLite
  
  $SQLite::Abstract::glob->{'default_table'} = $table_name;
  
- my $table = {
- 	'struct', [
-		'phone',  [qw(INTEGER(32) NOT NULL)],
-		'name',   [qw(VARCHAR(512) NOT NULL)],
-		'address',[qw(VARCHAR(1024) NOT NULL)]
-	]
- };
-
  $sql->create($table);
-
- my ($phone, $name, $address, $data, %unique);
-
- ...
-
- while (<FH>){
- 	($name, $phone, $address) = split ';',$_ and
-	push @$data, [$phone, $name, $address];
- }
-
+ 
  $sql->insert($data);
-
- 
- #then select, update, insert again and so on ...
- 
- my $what = "where phone like %6% and name like %reni%";
- my $search = { 'where' => $what, 'col' => 'name, phone' };
- my $result = $sql->search($search);
-
- #or just SELECT * FROM sm_table_name
- 
+ $sql->search($search);
  $sql->search({});
-
  
- my $update = { 'name set', 'RENI where name like %reni%' };
- my $result = $sql->update($update);
-
- #insert after delete - SQLite is fast enough
+ #the same
  
+ $sql->select({});
+ $sql->update({$data});
  $sql->delete_insert($data);
  
+ $sql->drop;
  
  
 =head1 DESCRIPTION
@@ -403,48 +375,60 @@ Primary goals are ease and speed in development of sql front-end with the excell
 
 Each method works into a single transaction.
 
-=head2 $sql = SQLite::Abstract->new( $dbname );
+=head2 new
+
+   $sql = SQLite::Abstract->new( $dbname );
 
 Object creation expects database name in order to init DB connection.
+Database name must ne existing file.
 
-=head2 $sql->search( $search )
+=head2 search
 
-Where $search must be e hash reference, containing 'where' and 'col' keys
+Where argument must be e hash reference, containing 'where' and 'col' keys
 which are optional. Each key's name may be changed through the global %{$glob}:
 
 =over
 
-=item 'where'
+=item C<where>
 
-speciafies which rows you want
+specifies which rows you want
 
-=item 'col'
+=item C<col>
 
 specifies the columns you want
 
 =back
 
-In brief 
-
    $SQLite::Abstract::glob->{'where'} = 'what';
-   $what   = "where phone like %6% and name like %reni%";
+   $what   = "where phone like %1% and name like %reni%";
    $search = { 'what' => $what, 'col' => 'name, phone' };
    $result = $sql->search($search);
+   
+   print "name: $_->[0]\tphone: $_->[1]\n" for @$result;
 
-where $result is 
-   print $_->[0], "\t", $_->[1], "\n" for @$result;
-
-=head2 $sql->select( { } )
+=head2 select
 
 Synonym for search 
 
-=head2 $sql->update( { } )
+=head2 update
 
-This methos expects hash ref where the only one key is a column name 
+This method expects hash ref where the only one key is a column name 
 and the value is WHERE clause. The key may be in comapy with 'set':
 
-   $update = { 'name set', 'RENI where name like %reni%' }; #or
-   $update = { 'set name', 'RENI where name like %reni%' }; #or
+=over
+
+=item C<name>
+
+specifies which column you want to SET
+
+=item C<where>
+
+specifies the row(s) you want to SET
+
+=back
+
+   $update = { 'name set', 'Reni where name like %reni%' }; #or
+   $update = { 'set name', 'Reni where name like %reni%' }; #or
    $update = { 'name', 'RENI where name like %reni%' };
 
    $result = $sql->update($update);
@@ -452,11 +436,25 @@ and the value is WHERE clause. The key may be in comapy with 'set':
    print "$result rows updates\n";
 
 
-=head2 $sql->delete( { } )
+=head2 delete
 
-The same mthod arguments as insert method except that the key does not
+The same method arguments as insert method except that the key does not
 have any special meaning - WHERE clause and value which contains the actual
 sql code:
+
+Again
+
+=over
+
+=item C<delete>
+
+specifies symbolic word for the action DELETE
+
+=item C<where>
+
+specifies the row(s) you want to DELETE
+
+=back
 
    #for more comfort
    $SQLite::Abstract::glob->{'where'} = 'remove';
@@ -467,18 +465,23 @@ sql code:
    print "$result rows deleted\n";
 
 
-=head2 $sql->insert( @$data )
+=head2 insert
+   
+   push my @$data, [("010010", "Tester", "st._one_test_1")];
+   $sql->insert( $data )
 
-Where the array must contain the same number of columns as the table
+Where the array must contain the same number and order of columns as the table
 
-=head2 $sql->delete_insert( @$data )
+=head2 delete_insert
 
-The same methos as 'insert' except that DELETE the table before INSERT
+   $sql->delete_insert( @$data )
+
+The same method as 'insert' except that DELETE the table before INSERT
 And because it's SQLite - speed is amazing.
 
-=head2 $sql->create( $table )
+=head2 create
 
-This methos needs table structure and eventually table name unless
+This method needs table structure and eventually table name unless
 another global var is not set (by default):
 
    $table_name = 'somewhere';
@@ -490,30 +493,28 @@ Than the table structure where the key 'struct' is also modules' $glob value
    $table = {
    	'tablename', $table_name,
    	'structure', [
-		'column_1', [qw( column_1 properties )],
-		'column_2', [qw( column_2 properties )]
-		#...
+                'phone',  [qw(INTEGER(32) NOT NULL)],
+                'name',   [qw(VARCHAR(512) NOT NULL)],
+                'address',[qw(VARCHAR(1024) NOT NULL)]
+	
 	]
    };
 
-=head2 $sql->drop( $table_name )
+   $sql->create($table);
+
+=head2 drop
+
+   $sql->drop( $table_name )
 
 Pretty self explanatory
 
-
-   $sql->create($table);
-
-=head1 NOTES
-
-The database is expected to be -e $file
-
 =head1 SEE ALSO
 
-L< DBI >, L< DBD::SQLite >
+L<DBD::SQLite>
 
 =head1 AUTHOR
 
-Vidul Petrov, <vidul@cpan.org>
+Vidul Petrov, vidul@cpan.org
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
-use SQLite::Abstract;
 use strict;
+use SQLite::Abstract;
 
 my $dbname = "phones.db";
 my $table_name = "sometown";

@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+use strict;
 use SQLite::Abstract;
 
 my $table_name = "sometown";
