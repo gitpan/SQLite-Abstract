@@ -1,5 +1,7 @@
 Revision history for Perl module SQLite::Abstract
 
+0.02 Sun Mar 26 06:28:42 2006
+    - manuals fixing
 
 0.01 Thu Mar 23 15:13:48 2006
     - version 0.12 is rewriten from scratch

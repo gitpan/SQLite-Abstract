@@ -18,7 +18,7 @@ our %EXPORT_TAGS = (
 	#all => [ @EXPORT_OK ],
 );
   
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 
 sub new {
@@ -401,7 +401,7 @@ SQLite::Abstract - Object oriented wrapper for SQLite2
       id INTEGER PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,	
-  SQ
+ SQ
 
  
  $db->table("tablename");
@@ -477,7 +477,7 @@ and DSN which are mandatory keys:
  $sql = SQLite::Abstract->new(
     {
        DB => $database,
-	   DSN => 'dbi:SQLite2:dbname',
+       DSN => 'dbi:SQLite2:dbname',
     }
  );
  
@@ -516,8 +516,8 @@ which is equivalent to:
 
   CREATE TABLE tablename (
       id INTEGER PRIMARY KEY,
-	  ...
-	  ...
+      ...
+      ...
   )
 
  QUOTE
@@ -604,16 +604,16 @@ select methods with the proper sql syntax.
  
  # list context usage 
  for( $sql->select_username ){
- 	print "username: $_ \n";
+   print "username: $_ \n";
  }
 
  # scalar context usage
  while( $username = $sql->select_username ){
- 	print "username: $username\n";
+   print "username: $username\n";
  }
 
  while( $user = $sql->select_fname_lname ){
- 	print "fname: $user->[0] lname: $user->[1];
+   print "fname: $user->[0] lname: $user->[1];
  }
  
 Returns array containing array references to each row in list context. In scalar context
